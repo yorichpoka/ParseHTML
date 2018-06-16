@@ -1,0 +1,14 @@
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\bin\Debug\ParseHTML.exe.config
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\bin\Debug\ParseHTML.exe
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\bin\Debug\ParseHTML.pdb
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\obj\Debug\ParseHTML.csprojResolveAssemblyReference.cache
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\obj\Debug\ParseHTML.Properties.Resources.resources
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\obj\Debug\ParseHTML.csproj.GenerateResource.Cache
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\obj\Debug\ParseHTML.exe
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\obj\Debug\ParseHTML.pdb
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\obj\Debug\ParseHTML.Views.Form_URL.resources
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\obj\Debug\ParseHTML.Views.Form_Application.resources
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\bin\Debug\HtmlAgilityPack.dll
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\bin\Debug\HtmlAgilityPack.pdb
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\bin\Debug\HtmlAgilityPack.xml
+E:\DOCUMENTS\Eric CHEUKINHO\ParseHTML\ParseHTML\obj\Debug\ParseHTML.Views.Form_Apropos.resources
