@@ -105,6 +105,155 @@ namespace ParseHTML.Model.Static
         }
 
         /// <summary>
+        /// Obtenir les images contenues dans une page web
+        /// </summary>
+        public static List<Programme_TV> Programes_TV(string contenu, Boolean est_contenu_html)
+        {
+            List<Programme_TV> liste_des_programmes = new List<Programme_TV>();
+
+            try
+            {
+                // -- Creation de l'objet page site web -- // 
+                HtmlDocument page_html = new HtmlDocument();
+
+                // -- Charger le contenu du document -- //
+                page_html.LoadHtml(
+                    est_contenu_html ? contenu
+                                     : HTML_Site_Web(contenu)
+                );
+
+                // -- Traitement dans le document HTML -- //
+                page_html
+                    // -- Balise root -- //
+                    .DocumentNode
+                    // -- Parcourir toutes la balises 'div' contenu dans le root -- //                                    
+                    .Descendants("div")
+                    // -- QUi ont pour class grid_2 -- //
+                    .Where(l => l.HasClass("grid_2"))
+                    // -- Lister le résultat -- //
+                    .ToList()
+                    // -- Parcourir le résultat -- //
+                    .ForEach(div_chaine => {
+                        // -- Déclaration du nom de la chaine -- //
+                        string chaine = "Programme";
+                        try
+                        {
+                            // -- Mise à jour du nom de la chaine -- //
+                            chaine = div_chaine.Descendants("div")
+                                                .FirstOrDefault(l => l.HasClass("chanel-header"))
+                                                    .Descendants("div")
+                                                        .FirstOrDefault(l => l.HasClass("chanel-logo"))
+                                                            .Descendants("img")
+                                                                .FirstOrDefault().GetAttributeValue("alt", "Programme");
+                        }
+                        catch(Exception ex) { }
+
+                        try
+                        {
+                            // -- Lister les programmes de la chaine -- //
+                            var div_programme = div_chaine.Descendants("div").FirstOrDefault(l => l.HasClass("chanel-content"));
+
+                            div_programme
+                                .Descendants("a")
+                                .ToList()
+                                .ForEach(program =>
+                                {
+                                    try
+                                    {
+                                        // -- Ajout du programme -- //
+                                        Programme_TV prog = new Programme_TV();
+
+                                        // -- Réccupération de la chaine -- //
+                                        prog.chaine = chaine;
+                                        // -- Réccupération de l'heure -- //
+                                        prog.heure = program.Descendants("h5").FirstOrDefault().InnerHtml;
+                                        // -- Réccupération du titre -- //
+                                        prog.titre = program.Descendants("h4").FirstOrDefault().InnerHtml;
+                                        // -- réccupération de l'image -- //
+                                        prog.fichier = program.Descendants("img").FirstOrDefault().GetAttributeValue("src", null);
+
+                                        // -- AJout dans la liste -- //
+                                        liste_des_programmes.Add(prog);
+                                    }
+                                    catch(Exception ex) { }
+                                });
+                        }
+                        catch { }
+                    });
+            }
+            catch { }
+
+            return
+                liste_des_programmes;
+        }
+
+        /// <summary>
+        /// Obtenir les images contenues dans une page web
+        /// </summary>
+        public static List<Programme_TV> Actualite(string contenu, Boolean est_contenu_html)
+        {
+            List<Programme_TV> liste_des_actialite = new List<Programme_TV>();
+
+            try
+            {
+                // -- Creation de l'objet page site web -- // 
+                HtmlDocument page_html = new HtmlDocument();
+
+                // -- Charger le contenu du document -- //
+                page_html.LoadHtml(
+                    est_contenu_html ? contenu
+                                     : HTML_Site_Web(contenu)
+                );
+
+                // -- Réccupération du premier iframe -- //
+                string url_actualite = page_html
+                                        .DocumentNode
+                                        .Descendants("iframe")
+                                        .FirstOrDefault()
+                                        .GetAttributeValue("src", "");
+
+                // -- Mise à jour de l'url -- //
+                url_actualite = "https:" + url_actualite;
+
+                // -- Mise à jour du html page -- //
+                page_html.LoadHtml(HTML_Site_Web(url_actualite));
+
+                // -- Traitement dans le document HTML -- //
+                page_html
+                    // -- Balise root -- //
+                    .DocumentNode
+                    // -- Parcourir toutes la balises 'div' contenu dans le root -- //                                    
+                    .Descendants("ul")
+                    // -- QUi ont pour class grid_2 -- //
+                    .FirstOrDefault(l => l.HasClass("nobullets"))
+                    .Descendants("li")
+                    // -- Lister le résultat -- //
+                    .ToList()
+                    // -- Parcourir le résultat -- //
+                    .ForEach(li_actu => {
+                        try
+                        {
+                            // -- Ajout du programme -- //
+                            Programme_TV actu = new Programme_TV();
+
+                            // -- Réccupération du titre -- //
+                            actu.titre = li_actu.Descendants("h1").FirstOrDefault().InnerHtml;
+                            // -- réccupération de l'image -- //
+                            actu.fichier = li_actu.Descendants("img").FirstOrDefault().GetAttributeValue("src", null);
+
+                            // -- AJout dans la liste -- //
+                            liste_des_actialite.Add(actu);
+                        }
+                        catch { }
+                    });
+            }
+            catch { }
+
+            return
+                liste_des_actialite;
+        }
+
+        /// <summary>
         /// Obtenir les audios contenues dans une page web
         /// </summary>
         public static List<string> Audio_Site_Web(string contenu_html)

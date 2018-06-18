@@ -11,6 +11,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows.Forms;
 
 namespace ParseHTML.Views
@@ -82,7 +83,7 @@ namespace ParseHTML.Views
         }
 
         // Chargement de ressources de l'application -- //
-        private void Chargement_ressource()
+        private void Chargement_ressource(List<Programme_TV> program_tv, List<Programme_TV> actualite_list)
         {
             // -- Répertoire actuel -- //
             string url_actuel = System.IO.Directory.GetCurrentDirectory();
@@ -99,6 +100,16 @@ namespace ParseHTML.Views
                 #region Charger Les images
                 foreach (string url_image in System.IO.Directory.GetFiles(url_actuel + "/App_Data/Sites/Images"))
                 {
+                    // -- Si c'est une image du programme tv passer -- //
+                    if (program_tv.Exists(l => l.fichier.ToString() == url_image))
+                    {
+                        continue;
+                    }
+                    else if (program_tv.Exists(l => l.fichier.ToString() == url_image))
+                    {
+                        continue;
+                    }
+
                     System.IO.FileInfo info_fichier = new System.IO.FileInfo(url_image);
                     Image img = Image.FromFile(url_image);
 
@@ -151,12 +162,44 @@ namespace ParseHTML.Views
                 }
                 #endregion
 
+                // -- Charger Les images -- //
+                #region Charger Les program tv
+                program_tv.ForEach(l =>
+                {
+                    System.IO.FileInfo info_fichier = new System.IO.FileInfo(l.fichier.ToString());
+                    Image img = Image.FromFile(l.fichier.ToString());
+
+                    l.fichier = img;
+                    l.intitule = $"Chaine: {l.chaine} / Heure: {l.heure} / Description: {l.titre}";
+                });
+                #endregion
+
+                #region Charger Les actualite tv
+                actualite_list.ForEach(l =>
+                {
+                    System.IO.FileInfo info_fichier = new System.IO.FileInfo(l.fichier.ToString());
+                    Image img = Image.FromFile(l.fichier.ToString());
+
+                    l.fichier = img;
+                    l.intitule = $"Description: {l.titre}";
+                });
+                #endregion
+
                 // -- Mise à jour du mode d'afficharge des images -- //
                 (this.dataGridView.Columns[1] as DataGridViewImageColumn).ImageLayout = DataGridViewImageCellLayout.Zoom;
 
                 // -- Mise à jour du contenu du data grid view -- //
                 //this.dataGridView.Rows.Clear();
                 this.dataGridView.DataSource = resources;
+
+                // -- Mise à jour du mode d'afficharge des programme -- //
+                (this.dataGridView_programme_tv.Columns[0] as DataGridViewImageColumn).ImageLayout = DataGridViewImageCellLayout.Zoom;
+                this.dataGridView_programme_tv.DataSource = program_tv;
+
+
+                // -- Mise à jour du mode d'afficharge des programme -- //
+                (this.dataGridView_actualite.Columns[0] as DataGridViewImageColumn).ImageLayout = DataGridViewImageCellLayout.Zoom;
+                this.dataGridView_actualite.DataSource = actualite_list;
 
                 // -- Actualiser le conteneur -- //
                 //this.flowLayoutPanel.Refresh();
@@ -324,7 +367,7 @@ namespace ParseHTML.Views
                     KeyValuePair<int, Boolean> essaie = new KeyValuePair<int, bool>(1, false);
 
                     // -- Essayer tant que la sauvegarde n'est pas effectué -- //
-                    while (essaie.Value == false && essaie.Key <= 2)
+                    while (essaie.Value == false && essaie.Key <= 3)
                     {
                         try
                         {
@@ -342,6 +385,11 @@ namespace ParseHTML.Views
                             else if (essaie.Key == 2)
                             {
                                 url_image_modifier = adresse_serveur_site_web + url_image;
+                            }
+                            // -- Essaie 2 -- //
+                            else if (essaie.Key == 3)
+                            {
+                                url_image_modifier = url_image;
                             }
                             // -- Essaie 3 -- //
                             else
@@ -378,7 +426,6 @@ namespace ParseHTML.Views
 
                 // -- Enregistrer les audios du site -- //
                 #region Enregistrer les audios du site
-                numero_resource = 1;
                 foreach (string url_audio in PHClass.Audio_Site_Web(contenu_html))
                 {
                     // -- Essaies de sauvegarde -- //
@@ -436,8 +483,152 @@ namespace ParseHTML.Views
                 }
                 #endregion
 
+                // -- Enregistrement des programme TV du site -- //
+                #region Enregistrement des programme TV du site
+                List<Programme_TV> programmes_tv_list = PHClass.Programes_TV(contenu_html, true);
+                foreach (Programme_TV programme_tv in programmes_tv_list)
+                {
+                    // -- Essaies de sauvegarde -- //
+                    KeyValuePair<int, Boolean> essaie = new KeyValuePair<int, bool>(1, false);
+
+                    // -- Essayer tant que la sauvegarde n'est pas effectué -- //
+                    while (essaie.Value == false && essaie.Key <= 2)
+                    {
+                        try
+                        {
+                            // -- Mise à jour de l'adresse d'une resources -- //
+                            string url_image_modifier = "";
+
+                            // -- Essaie 1 -- //
+                            if (essaie.Key == 1)
+                            {
+                                // -- src = '//image/'
+                                url_image_modifier = adresse_uri_site_web.Scheme + ":" + (programme_tv.fichier.ToString().Split(':').Count() > 1 ? programme_tv.fichier.ToString().Split(':')[1]
+                                                                                                                                                 : programme_tv.fichier.ToString());
+                            }
+                            // -- Essaie 2 -- //
+                            else if (essaie.Key == 2)
+                            {
+                                url_image_modifier = adresse_serveur_site_web + programme_tv.fichier.ToString();
+                            }
+                            // -- Essaie 2 -- //
+                            else if (essaie.Key == 3)
+                            {
+                                url_image_modifier = programme_tv.fichier.ToString();
+                            }
+                            // -- Essaie 3 -- //
+                            else
+                            {
+
+                            }
+
+                            // -- Génération du lien de sauvegarde lde l'image -- //
+                            string lien_sauvegarde = url_actuel + "\\App_Data\\Sites\\Images\\" + this._historique_navigation.First(l => l.url == adresse_site_web).id + separateur + (numero_resource++) + System.IO.Path.GetExtension(url_image_modifier);
+
+                            // -- Telecharger la resource -- //
+                            using (WebClient client = new WebClient())
+                            {
+                                // -- Telechargement de la resource à l'emplacement défini -- //
+                                client.DownloadFile(new Uri(url_image_modifier), lien_sauvegarde);
+                            }
+
+                            // -- Mise à jour de l'etat d el'essaie -- //
+                            essaie = new KeyValuePair<int, bool>(
+                                        // -- Incrémenter l'essaie -- //
+                                        essaie.Key + 1,
+                                        // -- Teste si la sauvegarde s'est effectué -- //
+                                        (System.IO.File.Exists(lien_sauvegarde))
+                                    );
+
+                            // -- Mise à jour du lien de destination du fichier -- //
+                            if (System.IO.File.Exists(lien_sauvegarde))
+                            {
+                                programme_tv.fichier = lien_sauvegarde;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // -- Reinitiliser lessaie -- //
+                            essaie = new KeyValuePair<int, bool>(essaie.Key + 1, false);
+                        }
+                    }
+                }
+                #endregion
+
+                // -- Enregistrement des programme TV du site -- //
+                #region Enregistrement des actualité du site
+                List<Programme_TV> actualite_list = PHClass.Actualite(contenu_html, true);
+                foreach (Programme_TV actualite in actualite_list)
+                {
+                    // -- Essaies de sauvegarde -- //
+                    KeyValuePair<int, Boolean> essaie = new KeyValuePair<int, bool>(1, false);
+
+                    // -- Essayer tant que la sauvegarde n'est pas effectué -- //
+                    while (essaie.Value == false && essaie.Key <= 2)
+                    {
+                        try
+                        {
+                            // -- Mise à jour de l'adresse d'une resources -- //
+                            string url_image_modifier = "";
+
+                            // -- Essaie 1 -- //
+                            if (essaie.Key == 1)
+                            {
+                                // -- src = '//image/'
+                                url_image_modifier = adresse_uri_site_web.Scheme + ":" + (actualite.fichier.ToString().Split(':').Count() > 1 ? actualite.fichier.ToString().Split(':')[1]
+                                                                                                                                              : actualite.fichier.ToString());
+                            }
+                            // -- Essaie 2 -- //
+                            else if (essaie.Key == 2)
+                            {
+                                url_image_modifier = adresse_serveur_site_web + actualite.fichier.ToString();
+                            }
+                            // -- Essaie 2 -- //
+                            else if (essaie.Key == 3)
+                            {
+                                url_image_modifier = actualite.fichier.ToString();
+                            }
+                            // -- Essaie 3 -- //
+                            else
+                            {
+
+                            }
+
+                            // -- Génération du lien de sauvegarde lde l'image -- //
+                            string lien_sauvegarde = url_actuel + "\\App_Data\\Sites\\Images\\" + this._historique_navigation.First(l => l.url == adresse_site_web).id + separateur + (numero_resource++) + System.IO.Path.GetExtension(url_image_modifier);
+
+                            // -- Telecharger la resource -- //
+                            using (WebClient client = new WebClient())
+                            {
+                                // -- Telechargement de la resource à l'emplacement défini -- //
+                                client.DownloadFile(new Uri(url_image_modifier), lien_sauvegarde);
+                            }
+
+                            // -- Mise à jour de l'etat d el'essaie -- //
+                            essaie = new KeyValuePair<int, bool>(
+                                        // -- Incrémenter l'essaie -- //
+                                        essaie.Key + 1,
+                                        // -- Teste si la sauvegarde s'est effectué -- //
+                                        (System.IO.File.Exists(lien_sauvegarde))
+                                    );
+
+                            // -- Mise à jour du lien de destination du fichier -- //
+                            if (System.IO.File.Exists(lien_sauvegarde))
+                            {
+                                actualite.fichier = lien_sauvegarde;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // -- Reinitiliser lessaie -- //
+                            essaie = new KeyValuePair<int, bool>(essaie.Key + 1, false);
+                        }
+                    }
+                }
+                #endregion
+
                 // -- Charger le contenu des images -- //
-                Chargement_ressource();
+                Chargement_ressource(programmes_tv_list, actualite_list);
 
                 // -- Message -- //
                 MessageBox.Show("Telechargement des ressources terminé!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
