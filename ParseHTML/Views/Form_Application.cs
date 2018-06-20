@@ -212,10 +212,14 @@ namespace ParseHTML.Views
             // -- Répertoire actuel -- //
             string url_actuel = System.IO.Directory.GetCurrentDirectory();
 
-            // -- Supprimer le répertoire temporaire de données -- //
-            System.IO.Directory.Delete(url_actuel + "/App_Data/Sites/Audios", true);
-            System.IO.Directory.Delete(url_actuel + "/App_Data/Sites/HTML", true);
-            System.IO.Directory.Delete(url_actuel + "/App_Data/Sites/Images", true);
+            try
+            {
+                // -- Supprimer le répertoire temporaire de données -- //
+                System.IO.Directory.Delete(url_actuel + "/App_Data/Sites/Audios", true);
+                System.IO.Directory.Delete(url_actuel + "/App_Data/Sites/HTML", true);
+                System.IO.Directory.Delete(url_actuel + "/App_Data/Sites/Images", true);
+            }
+            catch { }
 
             // -- Créer les répertoires -- //
             System.IO.Directory.CreateDirectory(url_actuel + "/App_Data/Sites/Audios");
@@ -316,6 +320,9 @@ namespace ParseHTML.Views
                 {
                     this._historique_navigation.Add(new Site_Web((sender as WebBrowser).Url.OriginalString));
                 }
+
+                // -- Déclencher l'evenement de sauvegarde des ressources -- //
+                //this.webBrowser_btn_enregistrer_ressources.PerformClick();
             }
             catch (Exception ex)
             {
@@ -338,6 +345,9 @@ namespace ParseHTML.Views
         {
             try
             {
+                // -- Initialiser les fchiers de sauvegarde -- //
+                Initialiser_App_Data();
+
                 // -- Réccupération de l'url du site web -- //
                 string adresse_site_web = webBrowser_tb_adresse_site.Text;
 

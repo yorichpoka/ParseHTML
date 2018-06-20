@@ -95,6 +95,21 @@ namespace ParseHTML.Model.Static
                         // -- Lister les resultats obtenus -- //
                         .ToList()
                 );
+
+                // -- Réccupérer les liens de toutes les images dans le site -- //
+                images.AddRange(
+                    page_html
+                        // -- Balise root -- //
+                        .DocumentNode
+                        // -- Parcourir toutes la balises 'img' contenu dans le root -- //                                    
+                        .Descendants("img")
+                        // -- Selectionner les attribut 'src' des balises 'img' trouvées -- //                                 
+                        .Select(l => l.GetAttributeValue("dsrc", null))
+                        // -- Ne selectionner que cexu qui on une valeur -- //   
+                        .Where(l => !string.IsNullOrEmpty(l) && !string.IsNullOrWhiteSpace(l))
+                        // -- Lister les resultats obtenus -- //
+                        .ToList()
+                );
             }
             catch { }
 
@@ -116,6 +131,7 @@ namespace ParseHTML.Model.Static
                 // -- Creation de l'objet page site web -- // 
                 HtmlDocument page_html = new HtmlDocument();
 
+                #region Cas 1
                 // -- Charger le contenu du document -- //
                 page_html.LoadHtml(
                     est_contenu_html ? contenu
@@ -170,7 +186,7 @@ namespace ParseHTML.Model.Static
                                         // -- Réccupération du titre -- //
                                         prog.titre = program.Descendants("h4").FirstOrDefault().InnerHtml;
                                         // -- réccupération de l'image -- //
-                                        prog.fichier = program.Descendants("img").FirstOrDefault().GetAttributeValue("src", null);
+                                        prog.fichier = program.Descendants("img").FirstOrDefault().GetAttributeValue("src", string.Empty);
 
                                         // -- AJout dans la liste -- //
                                         liste_des_programmes.Add(prog);
@@ -180,6 +196,81 @@ namespace ParseHTML.Model.Static
                         }
                         catch { }
                     });
+                #endregion
+
+                #region Cas 2
+                try
+                {
+                    // -- Charger le contenu du document -- //
+                    page_html.LoadHtml(
+                        est_contenu_html ? contenu
+                                         : HTML_Site_Web(contenu)
+                    );
+
+                    // -- Traitement dans le document HTML -- //
+                    page_html
+                        // -- Balise root -- //
+                        .DocumentNode
+                        // -- Parcourir toutes la balises 'div' contenu dans le root -- //                                    
+                        .Descendants("div")
+                        // -- QUi ont pour class programs -- //
+                        .FirstOrDefault(l => l.HasClass("programs"))
+                        // -- Parcourir les div qui sont dans programs -- //
+                        .Descendants("div")
+                        // -- Qui ont pour classe row -- //
+                        .Where(l => l.HasClass("row"))
+                        // -- Lister le résultat -- //
+                        .ToList()
+                        // -- Parcourir le résultat -- //
+                        .ForEach(div_programme =>
+                        {
+                            // -- Déclaration du nom de la chaine -- //
+                            string chaine = "Programme";
+                            //try
+                            //{
+                            //// -- Mise à jour du nom de la chaine -- //
+                            //chaine = div_chaine.Descendants("div")
+                            //                        .FirstOrDefault(l => l.HasClass("chanel-header"))
+                            //                            .Descendants("div")
+                            //                                .FirstOrDefault(l => l.HasClass("chanel-logo"))
+                            //                                    .Descendants("img")
+                            //                                        .FirstOrDefault().GetAttributeValue("alt", "Programme");
+                            //}
+                            //catch (Exception ex) { }
+
+                            try
+                            {
+                                // -- Lister les programmes de la chaine -- //
+                                div_programme.Descendants("div")
+                                    .Where(l => l.HasClass("item"))
+                                    .ToList()
+                                    .ForEach(div_chaine =>
+                                    {
+                                        try
+                                        {
+                                            // -- Ajout du programme -- //
+                                            Programme_TV prog = new Programme_TV();
+
+                                            // -- Réccupération de la chaine -- //
+                                            prog.chaine = chaine;
+                                            // -- Réccupération de l'heure -- //
+                                            prog.heure = div_chaine.Descendants("div").FirstOrDefault(l => l.HasClass("hour-type")).InnerHtml.Replace("\t", string.Empty);
+                                            // -- Réccupération du titre -- //
+                                            prog.titre = div_chaine.Descendants("a").FirstOrDefault(l => l.HasClass("title")).InnerHtml.Replace("\t", string.Empty);
+                                            // -- réccupération de l'image -- //
+                                            prog.fichier = div_chaine.Descendants("img").FirstOrDefault().GetAttributeValue("dsrc", string.Empty).Replace("\t", string.Empty);
+
+                                            // -- AJout dans la liste -- //
+                                            liste_des_programmes.Add(prog);
+                                        }
+                                        catch (Exception ex) { }
+                                    });
+                            }
+                            catch { }
+                        });
+                }
+                catch { }
+                #endregion
             }
             catch { }
 
