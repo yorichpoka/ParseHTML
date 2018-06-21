@@ -322,7 +322,7 @@ namespace ParseHTML.Views
                 }
 
                 // -- Déclencher l'evenement de sauvegarde des ressources -- //
-                //this.webBrowser_btn_enregistrer_ressources.PerformClick();
+                this.webBrowser_btn_enregistrer_ressources.PerformClick();
             }
             catch (Exception ex)
             {
